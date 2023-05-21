@@ -1,6 +1,7 @@
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { ProtocolSpec, isValidProtocolSpec } from './Types';
+import { ProtocolSpec, ProtocolSpecData, ProtocolSpecRegularDataTypes, ProtocolSpecSpecialDataTypes, isValidProtocolSpec } from './Types';
+import { typeMappings } from './utils';
 
 export default async function autobuf(spec: ProtocolSpec, output: string) {
   // Verification
@@ -553,10 +554,187 @@ this.buf = buf!;
 }`,
   };
 
+  function capitalize(string) {
+    return string.substring(0, 1).toUpperCase() + string.substring(1);
+  }
+
+  function genReadCode(data: ProtocolSpecData, keys = []) {
+    const lines = Object.keys(data).length === 1 && (ProtocolSpecRegularDataTypes.includes(data[Object.keys(data)[0]] as any) || ProtocolSpecRegularDataTypes.includes((data[Object.keys(data)[0]] as any).type) || (data[Object.keys(data)[0]] as any).type === 'array' || ((data[Object.keys(data)[0]] as any).type === 'object' && (data[Object.keys(data)[0]] as any).data)) ? [] : [`this.data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')} = {} as any;`];
+
+    for (const key in data) {
+      if (!keys.length) lines.push('');
+      const keyPath = `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
+      const rawItem = data[key];
+      const item =
+        typeof rawItem === 'string'
+          ? {
+              type: rawItem,
+            }
+          : rawItem;
+
+      if (ProtocolSpecSpecialDataTypes.includes(item.type as any)) {
+        switch (item.type) {
+          case 'array':
+            lines.push(`this.data${keyPath} = [];`);
+            lines.push(`const ${key}Length = this.buf.readVarInt();`);
+            lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
+            lines.push(...genReadCode(item.data, [...keys, key, `[${key}Index]`]).map(i => `  ${i}`));
+            lines.push('}');
+
+            break;
+
+          case 'object':
+            if ((item as any).data) {
+              lines.push(...genReadCode((item as any).data, [...keys, key]).map(i => (!keys.length ? i : `  ${i}`)));
+            } else {
+              lines.push(`const ${key}Length = this.buf.readVarInt();`);
+              lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
+              lines.push(`  const key = this.buf.read${capitalize((item as any).keyType)}();`);
+              lines.push('');
+              lines.push(
+                ...genReadCode(
+                  {
+                    '': (item as any).valueType,
+                  },
+                  [...keys, key, '[key]']
+                ).map(i => (ProtocolSpecRegularDataTypes.includes((item as any).valueType) || ProtocolSpecRegularDataTypes.includes((item as any).valueType.type) ? `  ${i}` : i))
+              );
+              lines.push('}');
+            }
+            break;
+        }
+      } else {
+        lines.push(`this.data${keyPath} = this.buf.read${capitalize(item.type)}();`);
+      }
+    }
+
+    return lines;
+  }
+  function genWriteCode(data: ProtocolSpecData, keys: string | string[] = []) {
+    const lines = [];
+
+    for (const key in data) {
+      if (!keys.length) lines.push('');
+      const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
+      const rawItem = data[key];
+      const item =
+        typeof rawItem === 'string'
+          ? {
+              type: rawItem,
+            }
+          : rawItem;
+
+      if (ProtocolSpecSpecialDataTypes.includes(item.type as any)) {
+        switch (item.type) {
+          case 'array':
+            lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
+            lines.push(`for (const item of ${keyPath}) {`);
+            lines.push(...genWriteCode(item.data, 'item').map(i => `  ${i}`));
+            lines.push('}');
+
+            break;
+
+          case 'object':
+            if ((item as any).data) {
+              lines.push(...genWriteCode((item as any).data, [...keys, key]).map(i => (!keys.length ? i : `  ${i}`)));
+            } else {
+              lines.push(`this.buf.writeVarInt(Object.keys(${keyPath}).length);`);
+              lines.push(`for (const key in ${keyPath}) {`);
+              lines.push(`  this.buf.write${capitalize((item as any).keyType)}(${typeMappings[(item as any).keyType] === 'number' ? 'Number(key)' : 'key'});`);
+              lines.push('');
+              lines.push(
+                ...genWriteCode(
+                  {
+                    '': (item as any).valueType,
+                  },
+                  [...keys, key, '[key]']
+                ).map(i => (ProtocolSpecRegularDataTypes.includes((item as any).valueType) || ProtocolSpecRegularDataTypes.includes((item as any).valueType.type) ? `  ${i}` : i))
+              );
+              lines.push('}');
+            }
+            break;
+        }
+      } else {
+        lines.push(`this.buf.write${capitalize(item.type)}(${keyPath});`);
+      }
+    }
+
+    return lines;
+  }
+  function genInterface(data: ProtocolSpecData) {
+    const lines = [];
+
+    for (const key in data) {
+      const item = data[key];
+
+      if (typeof item === 'string') {
+        lines.push(`${key}: ${typeMappings[item]};`);
+      } else {
+        if (ProtocolSpecSpecialDataTypes.includes((item as any).type)) {
+          switch (item.type) {
+            case 'array':
+              lines.push(`${key}: {`, ...genInterface(item.data), '}[];');
+              break;
+
+            case 'object':
+              if ((item as any).data) {
+                lines.push(`${key}: {`, ...genInterface((item as any).data), '};');
+              } else {
+                lines.push(
+                  `${key}: {`,
+                  ...genInterface({
+                    [`[key: ${typeMappings[(item as any).keyType]}]`]: (item as any).valueType,
+                  }),
+                  '};'
+                );
+              }
+              break;
+          }
+        } else {
+          lines.push(`${key}: ${typeMappings[item.type]};`);
+        }
+      }
+    }
+
+    return lines.map(i => `  ${i}`);
+  }
+
   for (const name in spec) {
     const item = spec[name];
 
+    files[`${name}Packet.ts`] = `import { BufWrapper } from './BufWrapper';
 
+import Packet from './Packet';
+
+export default class ${name}Packet extends Packet<${name}> {
+  public static readonly id = ${item.id};
+
+  public constructor(buf?: BufWrapper) {
+    super(buf);
+  }
+
+  public write(data: ${name}): void {
+    this.data = data;
+
+    this.buf = new BufWrapper(null, { oneConcat: true });
+    this.buf.writeVarInt(${name}Packet.id); // Packet ID
+${genWriteCode(item.data)
+  .map(i => `    ${i}`)
+  .join('\n')}
+  }
+
+  public read(): ${name} {
+${genReadCode(item.data)
+  .map(i => `    ${i}`)
+  .join('\n')}
+
+    return this.data;
+  }
+}
+
+interface ${name} {
+${genInterface(item.data).join('\n')}
+}`;
   }
 
   for (const file in files) await writeFile(join(output, file), files[file], 'utf-8');

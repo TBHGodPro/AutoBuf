@@ -23,7 +23,7 @@ export type ProtocolSpecData = {
       };
 };
 
-export const ProtocolSpecRegularDataTypes = ['varint', 'string', 'int', 'long', 'stringArray', 'intArray', 'uuid', 'rawBytes', 'boolean', 'float', 'short', 'double'] as const;
+export const ProtocolSpecRegularDataTypes = ['varInt', 'string', 'int', 'long', 'stringArray', 'intArray', 'bytes', 'boolean', 'float', 'short', 'double'] as const;
 export type ProtocolSpecRegularDataType = (typeof ProtocolSpecRegularDataTypes)[number];
 export const ProtocolSpecSpecialDataTypes = ['array', 'object'] as const;
 export type ProtocolSpecSpecialDataType = (typeof ProtocolSpecSpecialDataTypes)[number];
