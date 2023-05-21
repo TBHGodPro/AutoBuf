@@ -1,0 +1,8 @@
+src/
+
+node_modules/
+.github/
+.git/
+
+index.test.js
+.gitignore

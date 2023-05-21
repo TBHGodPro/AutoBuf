@@ -1,0 +1,30 @@
+{
+  "name": "autobuf",
+  "version": "1.0.0",
+  "description": "Automatic Buffer Protocol creator with Typescript support",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "load": "npm i . -g"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TBHGodPro/AutoBuf.git"
+  },
+  "author": "TBHGodPro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TBHGodPro/AutoBuf/issues"
+  },
+  "homepage": "https://github.com/TBHGodPro/AutoBuf#readme",
+  "bin": {
+    "autobuf": "./bin/index.mjs"
+  },
+  "dependencies": {
+    "typescript": "^5.0.4",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.1"
+  }
+}
