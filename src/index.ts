@@ -20,7 +20,7 @@ export default async function autobuf(spec: ProtocolSpec, output: string) {
   const files = {
     'BufWrapper.ts': `// Credit to MinecraftJS (https://github.com/MinecraftJS)
     
-import { Buffer } from 'node:buffer';
+import { Buffer } from 'buffer';
 
 function encodeVarint(num: number) {
   const MSB = 0x80,
