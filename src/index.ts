@@ -748,7 +748,7 @@ export type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType exten
 
 // Incoming
 
-export const IncomingPackets = [
+export const IncomingPackets${Object.keys(spec).filter(i => spec[i].direction === 'incoming' || spec[i].direction === 'both').length ? '' : ': (typeof Packet<any>)[]'} = [
 ${Object.keys(spec)
   .filter(i => spec[i].direction === 'incoming' || spec[i].direction === 'both')
   .map(name => `  ${name}Packet,`)
@@ -805,7 +805,7 @@ export function readIncomingPacket<T extends keyof IncomingPacketTypes>(data: Bu
 
 // Outgoing
 
-export const OutgoingPackets = [
+export const OutgoingPackets${Object.keys(spec).filter(i => spec[i].direction === 'outgoing' || spec[i].direction === 'both').length ? '' : ': (typeof Packet<any>)[]'} = [
 ${Object.keys(spec)
   .filter(i => spec[i].direction === 'outgoing' || spec[i].direction === 'both')
   .map(name => `  ${name}Packet,`)
