@@ -35,11 +35,10 @@ if ((!file.endsWith('.json') && !file.endsWith('.jsonc')) || !existsSync(file)) 
 
 let spec;
 
-const jsoncRegex = /\/\/.*|\/\*\*(.|\n|\r|\r\n|\n\r)*\*\//g;
 try {
   spec = await readFile(file, 'utf-8');
 
-  if (file.endsWith('.jsonc')) for (const match of spec.matchAll(jsoncRegex)) spec = spec.replace(match, '');
+  if (file.endsWith('.jsonc')) spec = spec.replace(/\/\/.*|\/\*\*(.|\n|\r|\r\n|\n\r)*\*\//g, '');
 
   spec = JSON.parse(spec);
 } catch {
