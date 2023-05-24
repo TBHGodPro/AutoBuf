@@ -31,12 +31,17 @@ const options = yargs(process.argv)
 const file = join(process.cwd(), options.file);
 const output = join(process.cwd(), options.output);
 
-if (!file.endsWith('.json') || !existsSync(file)) throw new Error('Protocol Spec must be a valid JSON Protocol Spec File');
+if ((!file.endsWith('.json') && !file.endsWith('.jsonc')) || !existsSync(file)) throw new Error('Protocol Spec must be a valid JSON Protocol Spec File');
 
 let spec;
 
+const jsoncRegex = /\/\/.*|\/\*\*(.|\n|\r|\r\n|\n\r)*\*\//g;
 try {
-  spec = JSON.parse(await readFile(file), 'utf-8');
+  spec = await readFile(file, 'utf-8');
+
+  if (file.endsWith('.jsonc')) for (const match of spec.matchAll(jsoncRegex)) spec = spec.replace(match, '');
+
+  spec = JSON.parse(spec);
 } catch {
   throw new Error('Protocol Spec must be a valid JSON Protocol Spec File');
 }
