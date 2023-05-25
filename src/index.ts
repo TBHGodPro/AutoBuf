@@ -1,7 +1,7 @@
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { ProtocolSpec, ProtocolSpecData, ProtocolSpecRegularDataTypes, ProtocolSpecSpecialDataTypes, isValidProtocolSpec } from './Types';
-import { typeMappings } from './utils';
+import { capitalize, randomString, typeMappings } from './utils';
 
 export default async function autobuf(spec: ProtocolSpec, output: string) {
   // Verification
@@ -554,10 +554,6 @@ this.buf = buf!;
 }`,
   };
 
-  function capitalize(string) {
-    return string.substring(0, 1).toUpperCase() + string.substring(1);
-  }
-
   function genReadCode(data: ProtocolSpecData, keys = []) {
     const lines = Object.keys(data).length === 1 && (ProtocolSpecRegularDataTypes.includes(data[Object.keys(data)[0]] as any) || ProtocolSpecRegularDataTypes.includes((data[Object.keys(data)[0]] as any).type) || (data[Object.keys(data)[0]] as any).type === 'array' || ((data[Object.keys(data)[0]] as any).type === 'object' && (data[Object.keys(data)[0]] as any).data)) ? [] : [`this.data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')} = {} as any;`];
 
@@ -627,9 +623,10 @@ this.buf = buf!;
       if (ProtocolSpecSpecialDataTypes.includes(item.type as any)) {
         switch (item.type) {
           case 'array':
+            const iteratorName = randomString(2);
             lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
-            lines.push(`for (const i of ${keyPath}) {`);
-            lines.push(...genWriteCode(item.data, 'i').map(i => `  ${i}`));
+            lines.push(`for (const ${iteratorName} of ${keyPath}) {`);
+            lines.push(...genWriteCode(item.data, iteratorName).map(i => `  ${i}`));
             lines.push('}');
 
             break;

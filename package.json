@@ -1,6 +1,6 @@
 {
   "name": "autobuf",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Automatic Buffer Protocol creator with Typescript support",
   "main": "dist/index.js",
   "scripts": {
