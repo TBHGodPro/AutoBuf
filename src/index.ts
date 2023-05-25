@@ -609,9 +609,14 @@ this.buf = buf!;
   function genWriteCode(data: ProtocolSpecData, keys: string | string[] = []) {
     const lines = [];
 
+    const isMain = !keys.length;
+
     for (const key in data) {
-      if (!keys.length) lines.push('');
-      const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
+      if (isMain) {
+        lines.push('');
+        keys = ['data'];
+      }
+      const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' || keys.indexOf(i) === 0 ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
       const rawItem = data[key];
       const item =
         typeof rawItem === 'string'
@@ -633,7 +638,7 @@ this.buf = buf!;
 
           case 'object':
             if ((item as any).data) {
-              lines.push(...genWriteCode((item as any).data, [...(typeof keys === 'string' ? [keys] : keys), key]).map(i => (!keys.length ? i : `  ${i}`)));
+              lines.push(...genWriteCode((item as any).data, [...(typeof keys === 'string' ? [keys] : keys), key]).map(i => (isMain ? i : `  ${i}`)));
             } else {
               lines.push(`this.buf.writeVarInt(Object.keys(${keyPath}).length);`);
               lines.push(`for (const key in ${keyPath}) {`);
