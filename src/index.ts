@@ -746,7 +746,8 @@ ${Object.keys(spec)
   .map(name => `import ${name}Packet from "./${name}Packet";`)
   .join('\n')}
   
-export type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+type ValueOf<T> = T[keyof T]
 
 // Incoming
 
@@ -782,11 +783,13 @@ export function writeIncomingPacket<T extends keyof IncomingPacketTypes>(
   return packet;
 }
 
-export function readIncomingPacket<T extends keyof IncomingPacketTypes>(data: Buffer): {
-  id: T,
-  packet: Packet<IncomingPacketTypes[T]>,
-  data: IncomingPacketTypes[T]
-} {
+export function readIncomingPacket<T extends keyof IncomingPacketTypes>(data: Buffer): ValueOf<{
+  [V in T]: {
+    id: V;
+    packet: Packet<IncomingPacketTypes[V]>;
+    data: IncomingPacketTypes[V];
+  };
+}> {
   const buf = new BufWrapper(data);
 
   const id = buf.readVarInt();
@@ -798,11 +801,10 @@ export function readIncomingPacket<T extends keyof IncomingPacketTypes>(data: Bu
   packet.read();
 
   return {
-    // @ts-expect-error - Some Constraint Stuff
     id: Packet.id,
     packet: packet as any,
     data: packet.data
-  };
+  } as any;
 }
 
 // Outgoing
@@ -839,11 +841,13 @@ export function writeOutgoingPacket<T extends keyof OutgoingPacketTypes>(
   return packet;
 }
 
-export function readOutgoingPacket<T extends keyof OutgoingPacketTypes>(data: Buffer): {
-  id: T,
-  packet: Packet<OutgoingPacketTypes[T]>,
-  data: OutgoingPacketTypes[T]
-} {
+export function readOutgoingPacket<T extends keyof OutgoingPacketTypes>(data: Buffer): ValueOf<{
+  [V in T]: {
+    id: V;
+    packet: Packet<OutgoingPacketTypes[V]>;
+    data: OutgoingPacketTypes[V];
+  };
+}> {
   const buf = new BufWrapper(data);
 
   const id = buf.readVarInt();
@@ -855,11 +859,10 @@ export function readOutgoingPacket<T extends keyof OutgoingPacketTypes>(data: Bu
   packet.read();
 
   return {
-    // @ts-expect-error - Some Constraint Stuff
     id: Packet.id,
     packet: packet as any,
     data: packet.data
-  };
+  } as any;
 }`;
 
   for (const file in files) await writeFile(join(output, file), files[file], 'utf-8');
