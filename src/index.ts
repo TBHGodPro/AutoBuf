@@ -578,14 +578,14 @@ this.buf = buf!;
             lines.push(`this.data${keyPath} = [];`);
             lines.push(`const ${key}Length = this.buf.readVarInt();`);
             lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
-            lines.push(...genReadCode(item.data, [...keys, key, `[${key}Index]`]).map(i => `  ${i}`));
+            lines.push(...genReadCode(item.data, [...(typeof keys === 'string' ? [keys] : keys), key, `[${key}Index]`]).map(i => `  ${i}`));
             lines.push('}');
 
             break;
 
           case 'object':
             if ((item as any).data) {
-              lines.push(...genReadCode((item as any).data, [...keys, key]).map(i => (!keys.length ? i : `  ${i}`)));
+              lines.push(...genReadCode((item as any).data, [...(typeof keys === 'string' ? [keys] : keys), key]).map(i => (!keys.length ? i : `  ${i}`)));
             } else {
               lines.push(`const ${key}Length = this.buf.readVarInt();`);
               lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
@@ -596,7 +596,7 @@ this.buf = buf!;
                   {
                     '': (item as any).valueType,
                   },
-                  [...keys, key, '[key]']
+                  [...(typeof keys === 'string' ? [keys] : keys), key, '[key]']
                 ).map(i => (ProtocolSpecRegularDataTypes.includes((item as any).valueType) || ProtocolSpecRegularDataTypes.includes((item as any).valueType.type) ? `  ${i}` : i))
               );
               lines.push('}');
@@ -628,15 +628,15 @@ this.buf = buf!;
         switch (item.type) {
           case 'array':
             lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
-            lines.push(`for (const item of ${keyPath}) {`);
-            lines.push(...genWriteCode(item.data, 'item').map(i => `  ${i}`));
+            lines.push(`for (const i of ${keyPath}) {`);
+            lines.push(...genWriteCode(item.data, 'i').map(i => `  ${i}`));
             lines.push('}');
 
             break;
 
           case 'object':
             if ((item as any).data) {
-              lines.push(...genWriteCode((item as any).data, [...keys, key]).map(i => (!keys.length ? i : `  ${i}`)));
+              lines.push(...genWriteCode((item as any).data, [...(typeof keys === 'string' ? [keys] : keys), key]).map(i => (!keys.length ? i : `  ${i}`)));
             } else {
               lines.push(`this.buf.writeVarInt(Object.keys(${keyPath}).length);`);
               lines.push(`for (const key in ${keyPath}) {`);
@@ -647,7 +647,7 @@ this.buf = buf!;
                   {
                     '': (item as any).valueType,
                   },
-                  [...keys, key, '[key]']
+                  [...(typeof keys === 'string' ? [keys] : keys), key, '[key]']
                 ).map(i => (ProtocolSpecRegularDataTypes.includes((item as any).valueType) || ProtocolSpecRegularDataTypes.includes((item as any).valueType.type) ? `  ${i}` : i))
               );
               lines.push('}');
