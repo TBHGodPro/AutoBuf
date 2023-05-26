@@ -1,7 +1,7 @@
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { ProtocolSpec, ProtocolSpecData, ProtocolSpecRegularDataTypes, ProtocolSpecSpecialDataTypes, isValidProtocolSpec } from './Types';
-import { capitalize, randomString, typeMappings } from './utils';
+import { capitalize, getNextChar, resetNextChar, typeMappings } from './utils';
 
 export default async function autobuf(spec: ProtocolSpec, output: string) {
   // Verification
@@ -611,11 +611,14 @@ this.buf = buf!;
 
     const isMain = !keys.length;
 
+    if (isMain) {
+      resetNextChar();
+      keys = ['data'];
+    }
+
     for (const key in data) {
-      if (isMain) {
-        lines.push('');
-        keys = ['data'];
-      }
+      if (isMain) lines.push('');
+
       const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' || keys.indexOf(i) === 0 ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
       const rawItem = data[key];
       const item =
@@ -628,7 +631,7 @@ this.buf = buf!;
       if (ProtocolSpecSpecialDataTypes.includes(item.type as any)) {
         switch (item.type) {
           case 'array':
-            const iteratorName = randomString(2);
+            const iteratorName = getNextChar();
             lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
             lines.push(`for (const ${iteratorName} of ${keyPath}) {`);
             lines.push(...genWriteCode(item.data, iteratorName).map(i => `  ${i}`));

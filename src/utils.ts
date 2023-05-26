@@ -16,15 +16,13 @@ export function capitalize(string: string): string {
   return string.substring(0, 1).toUpperCase() + string.substring(1);
 }
 
-export function randomString(length: number = 1): string {
-  const chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-
-  let string = '';
-
-  for (let i = 0; i < length; i++) {
-    const char = chars[Math.floor(Math.random() * chars.length)];
-    string += Math.random() < 0.5 ? char.toLowerCase() : char.toUpperCase();
-  }
-
-  return string;
+const chars = ['i', 'e', 'x', 'a', 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'y', 'z'];
+let nextChar = 0;
+export function getNextChar(): string {
+  const char = chars[nextChar];
+  nextChar++;
+  return char;
+}
+export function resetNextChar() {
+  nextChar = 0;
 }
