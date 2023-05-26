@@ -726,6 +726,8 @@ export default class ${name}Packet extends Packet<${name}> {
 ${genWriteCode(item.data)
   .map(i => `    ${i}`)
   .join('\n')}
+
+    this.buf.finish();
   }
 
   public read(): ${name} {
