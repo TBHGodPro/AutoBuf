@@ -555,7 +555,7 @@ this.buf = buf!;
   };
 
   function genReadCode(data: ProtocolSpecData, keys = []) {
-    const lines = Object.keys(data).length === 1 && (ProtocolSpecRegularDataTypes.includes(data[Object.keys(data)[0]] as any) || ProtocolSpecRegularDataTypes.includes((data[Object.keys(data)[0]] as any).type) || (data[Object.keys(data)[0]] as any).type === 'array' || ((data[Object.keys(data)[0]] as any).type === 'object' && (data[Object.keys(data)[0]] as any).data)) ? [] : [`this.data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')} = {} as any;`];
+    const lines = keys.length && Object.keys(data).length === 1 && (ProtocolSpecRegularDataTypes.includes(data[Object.keys(data)[0]] as any) || ProtocolSpecRegularDataTypes.includes((data[Object.keys(data)[0]] as any).type) || (data[Object.keys(data)[0]] as any).type === 'array' || ((data[Object.keys(data)[0]] as any).type === 'object' && (data[Object.keys(data)[0]] as any).data)) ? [] : [`this.data${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')} = {} as any;`];
 
     for (const key in data) {
       if (!keys.length) lines.push('');
