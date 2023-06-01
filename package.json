@@ -1,6 +1,6 @@
 {
   "name": "autobuf",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Automatic Buffer Protocol creator with Typescript support",
   "main": "dist/index.js",
   "scripts": {
@@ -21,10 +21,10 @@
     "autobuf": "./bin/index.mjs"
   },
   "dependencies": {
-    "typescript": "^5.0.4",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@types/node": "^20.2.1"
+    "@types/node": "^20.2.1",
+    "typescript": "^5.0.4"
   }
 }

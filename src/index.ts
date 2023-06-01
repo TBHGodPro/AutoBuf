@@ -97,12 +97,6 @@ export class BufWrapper {
   private buffers: Buffer[];
 
   /**
-   * Object containing plugins that will be automatically
-   * installed to new \`BufWrapper\` instances.
-   */
-  public static defaultPlugins: BufWrapperPluginsArgument = {};
-
-  /**
    * Create a new buffer wrapper instance
    * @param buffer The NodeJS buffer to wrap, optional
    * @param options Options to apply to the buffer wrapper, optional
@@ -510,19 +504,6 @@ export class BufWrapper {
 }
 
 type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
-
-export type BufWrapperPlugins<Argument extends BufWrapperPluginsArgument> = {
-  [plugin in keyof Argument]: {
-    [key in keyof Argument[plugin]]: (...args: ArgumentTypes<Argument[plugin][key]>) => ReturnType<Argument[plugin][key]>;
-  };
-};
-
-/** Type used as default value for the \`BufWrapper#plugins\` property */
-export type BufWrapperPluginsArgument = {
-  [key: string]: {
-    [key: string]: (...args: any[]) => any;
-  };
-};
 
 export interface BufWrapperOptions {
   /**
