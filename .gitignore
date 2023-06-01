@@ -131,4 +131,5 @@ dist
 
 # Testing
 protocolSpec.json
+protocol.jsonc
 protocol

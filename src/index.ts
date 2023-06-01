@@ -579,6 +579,10 @@ this.buf = buf!;
               lines.push('}');
             }
             break;
+
+          case 'enum':
+            lines.push(`this.data${keyPath} = ${(item as any).name}Enum[this.buf.readShort()] as any;`);
+            break;
         }
       } else {
         lines.push(`this.data${keyPath} = this.buf.read${capitalize(item.type)}();`);
@@ -639,6 +643,10 @@ this.buf = buf!;
               lines.push('}');
             }
             break;
+
+          case 'enum':
+            lines.push(`this.buf.writeShort(${(item as any).name}Enum[${keyPath}]);`);
+            break;
         }
       } else {
         lines.push(`this.buf.write${capitalize(item.type)}(${keyPath});`);
@@ -675,6 +683,10 @@ this.buf = buf!;
                 );
               }
               break;
+
+            case 'enum':
+              lines.push(`${key}: ${(item as any).values.map(i => `"${i}"`).join(' | ')};`);
+              break;
           }
         } else {
           lines.push(`${key}: ${typeMappings[item.type]};`);
@@ -683,6 +695,23 @@ this.buf = buf!;
     }
 
     return lines.map(i => `  ${i}`);
+  }
+  function genEnums(data: ProtocolSpecData) {
+    const lines = [];
+
+    for (const key in data) {
+      const item = data[key];
+      const type = typeof item === 'string' ? item : item.type;
+
+      if (type === 'enum') {
+        const name = (item as any).name;
+        const values = (item as any).values;
+
+        lines.push(`export enum ${name}Enum {\n${values.map(v => `  ${v} = ${values.indexOf(v)},`).join('\n')}\n}`);
+      }
+    }
+
+    return lines;
   }
 
   for (const name in spec) {
@@ -720,9 +749,11 @@ ${genReadCode(item.data)
   }
 }
 
-interface ${name} {
+export interface ${name} {
 ${genInterface(item.data).join('\n')}
-}`;
+}
+
+${genEnums(item.data).join('\n\n')}`;
   }
 
   files['index.ts'] = `import { BufWrapper } from "./BufWrapper";

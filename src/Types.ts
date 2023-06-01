@@ -20,12 +20,17 @@ export type ProtocolSpecData = {
         type: 'object';
         keyType: ProtocolSpecRegularDataType;
         valueType: ProtocolSpecData[keyof ProtocolSpecData];
+      }
+    | {
+        type: 'enum';
+        name: string;
+        values: string[];
       };
 };
 
 export const ProtocolSpecRegularDataTypes = ['varInt', 'string', 'int', 'long', 'stringArray', 'intArray', 'bytes', 'boolean', 'float', 'short', 'double'] as const;
 export type ProtocolSpecRegularDataType = (typeof ProtocolSpecRegularDataTypes)[number];
-export const ProtocolSpecSpecialDataTypes = ['array', 'object'] as const;
+export const ProtocolSpecSpecialDataTypes = ['array', 'object', 'enum'] as const;
 export type ProtocolSpecSpecialDataType = (typeof ProtocolSpecSpecialDataTypes)[number];
 export const ProtocolSpecAllDataTypes = [...ProtocolSpecRegularDataTypes, ...ProtocolSpecSpecialDataTypes] as const;
 export type ProtocolSpecAllDataType = (typeof ProtocolSpecAllDataTypes)[number];
@@ -68,6 +73,10 @@ export function isValidProtocolSpecData(data: ProtocolSpecData): data is Protoco
             })
           )
             return false;
+        } else if (item.type === 'enum') {
+          if (typeof (item as any).name !== 'string') return false;
+          if (!Array.isArray((item as any).values)) return false;
+          if ((item as any).values.map(i => typeof i === 'string').includes(false)) return false;
         } else return false;
       }
     } else return false;
