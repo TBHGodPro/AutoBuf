@@ -168,9 +168,15 @@ export class BufWrapper {
    * \`\`\`
    */
   public readString(): string {
-    const length = this.readVarInt();
-    const value = this.buffer.toString('utf8', this.offset, this.offset + length);
-    this.offset += length;
+    let length = this.readVarInt();
+
+    let value = '';
+    while (length > 0) {
+      value += this.buffer.toString('utf8', this.offset, this.offset + length);
+      this.offset += Math.min(length, 512);
+      length -= 512
+    }
+
     return value;
   }
 
