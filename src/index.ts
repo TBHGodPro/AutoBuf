@@ -18,24 +18,22 @@ export default async function autobuf(spec: ProtocolSpec, output: string) {
 
   // Stores file data
   const files = {
-    'BufWrapper.ts': `// Credit to MinecraftJS (https://github.com/MinecraftJS)
+    'BufWrapper.ts': `// Credit to MinecraftJS (https://github.com/MinecraftJS/)
     
 import { Buffer } from 'buffer';
 
-function encodeVarint(num: number) {
+function encodeVarint(num: number): number[] {
+  if (Number.MAX_SAFE_INTEGER && num > Number.MAX_SAFE_INTEGER) {
+    throw new RangeError('Could not encode varint');
+  }
+
   const MSB = 0x80,
     REST = 0x7f,
     MSBALL = ~REST,
-    INT = Math.pow(2, 31),
-    out: any[] = [];
+    INT = Math.pow(2, 31);
 
-  let bytes,
-    offset = 0;
-
-  if (Number.MAX_SAFE_INTEGER && num > Number.MAX_SAFE_INTEGER) {
-    bytes = 0;
-    throw new RangeError('Could not encode varint');
-  }
+  const out = [];
+  let offset = 0;
 
   while (num >= INT) {
     out[offset++] = (num & 0xff) | MSB;
@@ -47,36 +45,69 @@ function encodeVarint(num: number) {
   }
   out[offset] = num | 0;
 
-  bytes = offset - 1;
-
-  return [out, bytes];
+  return out;
 }
-function decodeVarint(buf: Buffer, offset: number) {
+function decodeVarint(buf: Buffer, offset: number): [number, number] {
   const MSB = 0x80,
     REST = 0x7f,
-    l = buf.length;
-
-  let bytes,
-    res = 0,
-    shift = 0,
-    counter = offset,
-    b;
+    MATH_POW_4 = Math.pow(2, 4 * 7),
+    MATH_POW_5 = Math.pow(2, 5 * 7),
+    MATH_POW_6 = Math.pow(2, 6 * 7),
+    MATH_POW_7 = Math.pow(2, 7 * 7);
 
   offset = offset || 0;
 
-  do {
-    if (counter >= l || shift > 49) {
-      bytes = 0;
-      throw new RangeError('Could not decode varint');
-    }
-    b = buf[counter++];
-    res += shift < 28 ? (b & REST) << shift : (b & REST) * Math.pow(2, shift);
-    shift += 7;
-  } while (b >= MSB);
+  let b = buf[offset];
+  let res = 0;
 
-  bytes = counter - offset;
+  res += b & REST;
+  if (b < MSB) {
+    return [res, 1];
+  }
 
-  return [res, bytes];
+  b = buf[offset + 1];
+  res += (b & REST) << 7;
+  if (b < MSB) {
+    return [res, 2];
+  }
+
+  b = buf[offset + 2];
+  res += (b & REST) << 14;
+  if (b < MSB) {
+    return [res, 3];
+  }
+
+  b = buf[offset + 3];
+  res += (b & REST) << 21;
+  if (b < MSB) {
+    return [res, 4];
+  }
+
+  b = buf[offset + 4];
+  res += (b & REST) * MATH_POW_4;
+  if (b < MSB) {
+    return [res, 5];
+  }
+
+  b = buf[offset + 5];
+  res += (b & REST) * MATH_POW_5;
+  if (b < MSB) {
+    return [res, 6];
+  }
+
+  b = buf[offset + 6];
+  res += (b & REST) * MATH_POW_6;
+  if (b < MSB) {
+    return [res, 7];
+  }
+
+  b = buf[offset + 7];
+  res += (b & REST) * MATH_POW_7;
+  if (b < MSB) {
+    return [res, 8];
+  }
+
+  throw new RangeError('Could not decode varint');
 }
 
 export class BufWrapper {
@@ -172,9 +203,9 @@ export class BufWrapper {
 
     let value = '';
     while (length > 0) {
-      value += this.buffer.toString('utf8', this.offset, this.offset + length);
+      value += this.buffer.toString('utf8', this.offset, this.offset + Math.min(length, 512));
       this.offset += Math.min(length, 512);
-      length -= 512
+      length -= 512;
     }
 
     return value;
