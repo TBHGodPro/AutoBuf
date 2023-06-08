@@ -203,11 +203,12 @@ export class BufWrapper {
 
     let value = '';
     while (length > 0) {
-      value += this.buffer.toString('utf8', this.offset, this.offset + Math.min(length, 512));
-      this.offset += Math.min(length, 512);
-      length -= 512;
+        const next = this.buffer.toString('utf8', this.offset, this.offset + length);
+        this.offset += length;
+        length -= next.length;
+        value += next;
     }
-
+    
     return value;
   }
 
