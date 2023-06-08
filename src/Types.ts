@@ -17,6 +17,10 @@ export type ProtocolSpecData = {
         data: ProtocolSpecData;
       }
     | {
+        type: 'array';
+        data: ProtocolSpecRegularDataType;
+      }
+    | {
         type: 'object';
         keyType: ProtocolSpecRegularDataType;
         valueType: ProtocolSpecData[keyof ProtocolSpecData];
@@ -64,7 +68,9 @@ export function isValidProtocolSpecData(data: ProtocolSpecData): data is Protoco
 
       if (ProtocolSpecSpecialDataTypes.includes(item.type as any)) {
         if ((item as any).data) {
-          if (!isValidProtocolSpecData((item as any).data)) return false;
+          if (item.type !== 'array' || !ProtocolSpecRegularDataTypes.includes((item as any).data)) {
+            if (!isValidProtocolSpecData((item as any).data)) return false;
+          }
         } else if ((item as any).keyType && (item as any).valueType) {
           if (!ProtocolSpecRegularDataTypes.includes((item as any).keyType)) return false;
           if (

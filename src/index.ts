@@ -578,7 +578,7 @@ this.buf = buf!;
 
     for (const key in data) {
       if (!keys.length) lines.push('');
-      const keyPath = `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
+      const keyPath = `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i === '' ? i : `.${i}`)).join('')}${(key.startsWith('[') && key.endsWith(']')) || key === '' ? key : `.${key}`}`;
       const rawItem = data[key];
       const item =
         typeof rawItem === 'string'
@@ -593,7 +593,7 @@ this.buf = buf!;
             lines.push(`this.data${keyPath} = [];`);
             lines.push(`const ${key}Length = this.buf.readVarInt();`);
             lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
-            lines.push(...genReadCode(item.data, [...(typeof keys === 'string' ? [keys] : keys), key, `[${key}Index]`]).map(i => `  ${i}`));
+            lines.push(...(ProtocolSpecRegularDataTypes.includes(item.data as any) ? genReadCode({ [`[${key}Index]`]: item.data as any }, [...(typeof keys === 'string' ? [keys] : keys), key]) : genReadCode(item.data as any, [...(typeof keys === 'string' ? [keys] : keys), key, `[${key}Index]`])).map(i => `  ${i}`));
             lines.push('}');
 
             break;
@@ -642,7 +642,7 @@ this.buf = buf!;
     for (const key in data) {
       if (isMain) lines.push('');
 
-      const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `${keys.map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' || keys.indexOf(i) === 0 ? i : `.${i}`)).join('')}${key === '' ? '' : `.${key}`}`;
+      const keyPath = typeof keys === 'string' ? `${keys}.${key}` : `${[...keys, key].map(i => ((i.startsWith('[') && i.endsWith(']')) || i == '' || keys.indexOf(i) === 0 ? i : `.${i}`)).join('')}`;
       const rawItem = data[key];
       const item =
         typeof rawItem === 'string'
@@ -657,7 +657,7 @@ this.buf = buf!;
             const iteratorName = getNextChar();
             lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
             lines.push(`for (const ${iteratorName} of ${keyPath}) {`);
-            lines.push(...genWriteCode(item.data, iteratorName).map(i => `  ${i}`));
+            lines.push(...(ProtocolSpecRegularDataTypes.includes(item.data as any) ? genWriteCode({ '': item.data as any }, [iteratorName]) : genWriteCode(item.data as any, iteratorName)).map(i => `  ${i}`));
             lines.push('}');
 
             break;
@@ -705,7 +705,8 @@ this.buf = buf!;
         if (ProtocolSpecSpecialDataTypes.includes((item as any).type)) {
           switch (item.type) {
             case 'array':
-              lines.push(`${key}: {`, ...genInterface(item.data), '}[];');
+              if (ProtocolSpecRegularDataTypes.includes(item.data as any)) lines.push(`${key}: ${typeMappings[item.data as any]}[];`);
+              else lines.push(`${key}: {`, ...genInterface(item.data as any), '}[];');
               break;
 
             case 'object':
@@ -746,6 +747,10 @@ this.buf = buf!;
         const values = (item as any).values;
 
         lines.push(`export enum ${name}Enum {\n${values.map(v => `  ${v} = ${values.indexOf(v)},`).join('\n')}\n}`);
+      } else if ((item as any)?.data) {
+        lines.push(...genEnums((item as any)?.data));
+      } else if ((item as any)?.valueType) {
+        lines.push(...genEnums((item as any)?.valueType));
       }
     }
 
