@@ -150,7 +150,7 @@ export class BufWrapper {
    * \`\`\`
    */
   public writeVarInt(value: number): void {
-    const encoded = encodeVarint(value)[0];
+    const encoded = encodeVarint(value);
     this.writeToBuffer(Buffer.from(encoded));
   }
 
