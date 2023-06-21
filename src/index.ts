@@ -3,6 +3,11 @@ import { join } from 'path';
 import { ProtocolSpec, ProtocolSpecData, ProtocolSpecRegularDataTypes, ProtocolSpecSpecialDataTypes, isValidProtocolSpec } from './Types';
 import { capitalize, getNextChar, resetNextChar, typeMappings } from './utils';
 
+// TODO: Directories
+
+// TODO: Make "bytes" type require a length
+// TODO: Fix issues with "data" key
+
 export default async function autobuf(spec: ProtocolSpec, output: string) {
   // Verification
   if (!isValidProtocolSpec(spec)) throw new Error('Protocol Spec must be a valid JSON Protocol Spec File');
@@ -566,7 +571,7 @@ export class BufWrapper {
    */
   public writeBlob(data: Buffer): void {
     this.writeShort(data.length);
-    this.writeBytes(data.length);
+    this.writeBytes(data);
   }
 
   /**
