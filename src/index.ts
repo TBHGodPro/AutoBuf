@@ -203,10 +203,10 @@ export class BufWrapper {
 
     let value = '';
     while (length > 0) {
-        const next = this.buffer.toString('utf8', this.offset, this.offset + length);
-        this.offset += length;
-        length -= next.length;
-        value += next;
+      const next = this.buffer.toString('utf8', this.offset, this.offset + length);
+      this.offset += length;
+      length -= next.length;
+      value += next;
     }
     
     return value;
@@ -251,7 +251,7 @@ export class BufWrapper {
    * @example
    * \`\`\`javascript
    * const buf = new BufWrapper();
-   * buf.writeLong(123456789);
+   * buf.writeLong(123456789n);
    * console.log(buf.buffer); // <Buffer 00 00 00 00 07 5b cd 15>
    * \`\`\`
    */
@@ -268,11 +268,13 @@ export class BufWrapper {
    * \`\`\`javascript
    * const buffer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x5b, 0xcd, 0x15]);
    * const buf = new BufWrapper(buffer);
-   * const decoded = buf.readLong();
-   * console.log(decoded); // 123456789
+   * const decoded = buf.readLong(true);
+   * console.log(decoded); // 123456789n
    * \`\`\`
    */
-  public readLong(): number {
+  public readLong(bigint?: false): number;
+  public readLong(bigint?: true): bigint;
+  public readLong(bigint: boolean = false): number | bigint {
     const value = this.buffer.readBigInt64BE(this.offset);
     this.offset += 8;
     return Number(value);
@@ -508,6 +510,50 @@ export class BufWrapper {
     const value = this.buffer.readDoubleBE(this.offset);
     this.offset += 8;
     return value;
+  }
+  
+
+  /*
+   * Write a UUID to the buffer
+   * @param value The value to write
+   * @example
+   * \`\`\`javascript
+   * const buf = new BufWrapper();
+   * buf.writeUUID('c09b74b4-8c14-44cb-b567-6576a2daf1f9');
+   * console.log(buf.buffer); // <Buffer C0 9B 74 B4 8C 14 44 CB B5 67 65 76 A2 DA F1 F9>
+   * \`\`\`
+   */
+  public writeUUID(uuid: string): void {
+    uuid = uuid.replace(/-/g, '');
+
+    const mostSigBits = Buffer.from(uuid.slice(0, 16), 'hex');
+    const leastSigBits = Buffer.from(uuid.slice(16, 32), 'hex');
+
+    this.writeBytes(mostSigBits);
+    this.writeBytes(leastSigBits);
+  }
+
+  /**
+   * Read a UUID from the buffer
+   * @param dashes Whether the UUID should have dashes
+   * @returns The UUID read from the buffer
+   * @example
+   * \`\`\`javascript
+   * const buffer = Buffer.from([ 0xC0, 0x9B, 0x74, 0xB4, 0x8C, 0x14, 0x44, 0xCB, 0xB5, 0x67, 0x65, 0x76, 0xA2, 0xDA, 0xF1, 0xF9 ]);
+   * const buf = new BufWrapper(buffer);
+   * const decoded = buf.readUUID(true);
+   * console.log(decoded); // c09b74b4-8c14-44cb-b567-6576a2daf1f9
+   * \`\`\`
+   */
+  public readUUID(dashes: boolean = true): string {
+    const mostSigBits = this.readLong(true);
+    const leastSigBits = this.readLong(true);
+
+    const uuid = mostSigBits.toString(16) + leastSigBits.toString(16);
+
+    if (!dashes) return uuid;
+
+    return uuid.slice(0, 8) + '-' + uuid.slice(8, 12) + '-' + uuid.slice(12, 16) + '-' + uuid.slice(16, 20) + '-' + uuid.slice(20, 32);
   }
 
   /**
