@@ -10,6 +10,7 @@ export const typeMappings = {
   float: 'number',
   short: 'number',
   double: 'number',
+  UUID: 'string',
 };
 
 export function capitalize(string: string): string {
