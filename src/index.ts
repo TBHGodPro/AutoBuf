@@ -557,6 +557,33 @@ export class BufWrapper {
   }
 
   /**
+   * Write a blob of data with a length to the buffer
+   * @param data The blob of data
+   * @example
+   * \`\`\`javascript
+   * // TO-DO
+   * \`\`\`
+   */
+  public writeBlob(data: Buffer): void {
+    this.writeShort(data.length);
+    this.writeBytes(data.length);
+  }
+
+  /**
+   * Read a blob of data from the buffer
+   * @returns the blob of data read from the buffer
+   * @example
+   * \`\`\`javascript
+   * // TO-DO
+   * \`\`\`
+   */
+  public readBlob(): Buffer {
+    const length = this.readShort();
+
+    return this.readBytes(length);
+  }
+
+  /**
    * When the \`BufWrapperOptions#oneConcat\` is set to \`true\`
    * you must call this method to concatenate all buffers
    * into one. If the option is \`undefined\` or set to \`false\`,

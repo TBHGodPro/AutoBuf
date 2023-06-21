@@ -11,6 +11,7 @@ export const typeMappings = {
   short: 'number',
   double: 'number',
   UUID: 'string',
+  blob: 'Buffer',
 };
 
 export function capitalize(string: string): string {

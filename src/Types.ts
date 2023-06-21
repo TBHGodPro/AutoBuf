@@ -32,7 +32,7 @@ export type ProtocolSpecData = {
       };
 };
 
-export const ProtocolSpecRegularDataTypes = ['varInt', 'string', 'int', 'long', 'stringArray', 'intArray', 'bytes', 'boolean', 'float', 'short', 'double', 'UUID'] as const;
+export const ProtocolSpecRegularDataTypes = ['varInt', 'string', 'int', 'long', 'stringArray', 'intArray', 'bytes', 'boolean', 'float', 'short', 'double', 'UUID', 'blob'] as const;
 export type ProtocolSpecRegularDataType = (typeof ProtocolSpecRegularDataTypes)[number];
 export const ProtocolSpecSpecialDataTypes = ['array', 'object', 'enum'] as const;
 export type ProtocolSpecSpecialDataType = (typeof ProtocolSpecSpecialDataTypes)[number];
