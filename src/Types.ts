@@ -19,6 +19,7 @@ export type ProtocolSpecData = {
     | {
         type: 'array';
         data: ProtocolSpecRegularDataType;
+        indexer?: 'varInt' | 'int' | 'short' | 'long' | number;
       }
     | {
         type: 'object';
@@ -70,6 +71,9 @@ export function isValidProtocolSpecData(data: ProtocolSpecData): data is Protoco
         if ((item as any).data) {
           if (item.type !== 'array' || !ProtocolSpecRegularDataTypes.includes((item as any).data)) {
             if (!isValidProtocolSpecData((item as any).data)) return false;
+          }
+          if (item.type === 'array' && (item as any).indexer) {
+            if (!['varInt', 'int', 'short', 'long'].includes((item as any).indexer) && typeof (item as any).indexer !== 'number') return false;
           }
         } else if ((item as any).keyType && (item as any).valueType) {
           if (!ProtocolSpecRegularDataTypes.includes((item as any).keyType)) return false;

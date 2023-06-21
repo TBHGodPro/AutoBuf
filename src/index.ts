@@ -669,7 +669,29 @@ this.buf = buf!;
         switch (item.type) {
           case 'array':
             lines.push(`this.data${keyPath} = [];`);
-            lines.push(`const ${key}Length = this.buf.readVarInt();`);
+            switch ((item as any).indexer) {
+              case 'varInt':
+              case undefined:
+              case null:
+                lines.push(`const ${key}Length = this.buf.readVarInt();`);
+                break;
+
+              case 'int':
+                lines.push(`const ${key}Length = this.buf.readInt();`);
+                break;
+
+              case 'short':
+                lines.push(`const ${key}Length = this.buf.readShort();`);
+                break;
+
+              case 'long':
+                lines.push(`const ${key}Length = this.buf.readLong();`);
+                break;
+
+              default:
+                lines.push(`const ${key}Length = ${(item as any).indexer};`);
+                break;
+            }
             lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
             lines.push(...(ProtocolSpecRegularDataTypes.includes(item.data as any) ? genReadCode({ [`[${key}Index]`]: item.data as any }, [...(typeof keys === 'string' ? [keys] : keys), key]) : genReadCode(item.data as any, [...(typeof keys === 'string' ? [keys] : keys), key, `[${key}Index]`])).map(i => `  ${i}`));
             lines.push('}');
@@ -733,7 +755,29 @@ this.buf = buf!;
         switch (item.type) {
           case 'array':
             const iteratorName = getNextChar();
-            lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
+            switch ((item as any).indexer) {
+              case 'varInt':
+              case undefined:
+              case null:
+                lines.push(`this.buf.writeVarInt(${keyPath}.length);`);
+                break;
+
+              case 'int':
+                lines.push(`this.buf.writeInt(${keyPath}.length);`);
+                break;
+
+              case 'short':
+                lines.push(`this.buf.writeShort(${keyPath}.length);`);
+                break;
+
+              case 'long':
+                lines.push(`this.buf.writeLong(${keyPath}.length);`);
+                break;
+
+              default:
+                // No need to write length
+                break;
+            }
             lines.push(`for (const ${iteratorName} of ${keyPath}) {`);
             lines.push(...(ProtocolSpecRegularDataTypes.includes(item.data as any) ? genWriteCode({ '': item.data as any }, [iteratorName]) : genWriteCode(item.data as any, iteratorName)).map(i => `  ${i}`));
             lines.push('}');

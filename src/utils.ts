@@ -18,7 +18,7 @@ export function capitalize(string: string): string {
   return string.substring(0, 1).toUpperCase() + string.substring(1);
 }
 
-const chars = ['i', 'e', 'x', 'a', 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'y', 'z'];
+const chars = ['i', 'e', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w'];
 let nextChar = 0;
 export function getNextChar(): string {
   const char = chars[nextChar];

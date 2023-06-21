@@ -2,7 +2,7 @@
 
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { isAbsolute, join } from 'path';
 import yargs from 'yargs';
 import autobufModule from '../dist/index.js';
 
@@ -28,8 +28,8 @@ const options = yargs(process.argv)
   .help(true)
   .version().argv;
 
-const file = join(process.cwd(), options.file);
-const output = join(process.cwd(), options.output);
+const file = isAbsolute(options.file) ? options.file : join(process.cwd(), options.file);
+const output = isAbsolute(options.output) ? options.output : join(process.cwd(), options.output);
 
 if ((!file.endsWith('.json') && !file.endsWith('.jsonc')) || !existsSync(file)) throw new Error('Protocol Spec must be a valid JSON Protocol Spec File');
 
