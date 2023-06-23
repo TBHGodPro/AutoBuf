@@ -719,7 +719,7 @@ this.buf = buf!;
             break;
 
           case 'enum':
-            lines.push(`this.data${keyPath} = ${(item as any).name}Enum[this.buf.readShort()] as any;`);
+            lines.push(`this.data${keyPath} = ${(item as any).name}Enum[this.buf.read${capitalize((item as any).valueType || 'short')}()] as any;`);
             break;
         }
       } else {
@@ -805,7 +805,7 @@ this.buf = buf!;
             break;
 
           case 'enum':
-            lines.push(`this.buf.writeShort(${(item as any).name}Enum[${keyPath}]);`);
+            lines.push(`this.buf.write${capitalize((item as any).valueType || 'short')}(${(item as any).name}Enum[${keyPath}]);`);
             break;
         }
       } else {

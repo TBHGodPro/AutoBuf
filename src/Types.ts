@@ -30,6 +30,7 @@ export type ProtocolSpecData = {
         type: 'enum';
         name: string;
         values: string[];
+        valueType?: 'varInt' | 'int' | 'short' | 'long';
       };
 };
 
@@ -87,6 +88,9 @@ export function isValidProtocolSpecData(data: ProtocolSpecData): data is Protoco
           if (typeof (item as any).name !== 'string') return false;
           if (!Array.isArray((item as any).values)) return false;
           if ((item as any).values.map(i => typeof i === 'string').includes(false)) return false;
+          if ((item as any).valueType) {
+            if (!['varInt', 'int', 'short', 'long'].includes((item as any).valueType)) return false;
+          }
         } else return false;
       }
     } else return false;
