@@ -529,13 +529,7 @@ export class BufWrapper {
    * \`\`\`
    */
   public writeUUID(uuid: string): void {
-    uuid = uuid.replace(/-/g, '');
-
-    const mostSigBits = Buffer.from(uuid.slice(0, 16), 'hex');
-    const leastSigBits = Buffer.from(uuid.slice(16, 32), 'hex');
-
-    this.writeBytes(mostSigBits);
-    this.writeBytes(leastSigBits);
+    this.writeBytes(Buffer.from(uuid.replace(/-/g, ''), 'hex'));
   }
 
   /**
@@ -551,10 +545,7 @@ export class BufWrapper {
    * \`\`\`
    */
   public readUUID(dashes: boolean = true): string {
-    const mostSigBits = this.readLong(true);
-    const leastSigBits = this.readLong(true);
-
-    const uuid = mostSigBits.toString(16) + leastSigBits.toString(16);
+    const uuid = this.readBytes(16).toString('hex');
 
     if (!dashes) return uuid;
 
