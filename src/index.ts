@@ -693,6 +693,8 @@ this.buf = buf!;
             if ((item as any).data) {
               lines.push(...genReadCode((item as any).data, [...(typeof keys === 'string' ? [keys] : keys), key]).map(i => (!keys.length ? i : `  ${i}`)));
             } else {
+              lines.push(`this.data${keyPath} = {} as any;`);
+              lines.push('');
               lines.push(`const ${key}Length = this.buf.readVarInt();`);
               lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
               lines.push(`  const key = this.buf.read${capitalize((item as any).keyType)}();`);
