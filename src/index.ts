@@ -24,7 +24,7 @@ export default async function autobuf(spec: ProtocolSpec, output: string) {
   // Stores file data
   const files = {
     'BufWrapper.ts': `// Credit to MinecraftJS (https://github.com/MinecraftJS/)
-    
+
 import { Buffer } from 'buffer';
 
 function encodeVarint(num: number): number[] {
@@ -213,7 +213,7 @@ export class BufWrapper {
       length -= next.length;
       value += next;
     }
-    
+
     return value;
   }
 
@@ -516,7 +516,6 @@ export class BufWrapper {
     this.offset += 8;
     return value;
   }
-  
 
   /*
    * Write a UUID to the buffer
@@ -639,7 +638,8 @@ this.buf = buf!;
   public write(data: T): void {}
 
   public read(): void {}
-}`,
+}
+`,
   };
 
   function genReadCode(data: ProtocolSpecData, keys = []) {
@@ -863,7 +863,11 @@ this.buf = buf!;
       } else if ((item as any)?.data) {
         lines.push(...genEnums((item as any)?.data));
       } else if ((item as any)?.valueType) {
-        lines.push(...genEnums((item as any)?.valueType));
+        lines.push(
+          ...genEnums({
+            '': (item as any)?.valueType,
+          })
+        );
       }
     }
 
@@ -914,11 +918,11 @@ ${genEnums(item.data).join('\n\n')}`;
 
   files['index.ts'] = `import { BufWrapper } from "./BufWrapper";
 import Packet from "./Packet";
-  
+
 ${Object.keys(spec)
   .map(name => `import ${name}Packet from "./${name}Packet";`)
   .join('\n')}
-  
+
 type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 type ValueOf<T> = T[keyof T]
 
