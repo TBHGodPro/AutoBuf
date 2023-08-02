@@ -528,7 +528,7 @@ export class BufWrapper {
    * \`\`\`
    */
   public writeUUID(uuid: string): void {
-    this.writeBytes(Buffer.from(uuid.replace(/-/g, ''), 'hex'));
+    this.writeBytes(Buffer.from(uuid?.length ? uuid.replace(/-/g, '') : '00000000000000000000000000000000', 'hex'));
   }
 
   /**
