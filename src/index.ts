@@ -680,10 +680,10 @@ this.buf = buf!;
                 break;
 
               default:
-                lines.push(`const ${key}Length = ${(item as any).indexer};`);
+                // No need to write length here, it is handled below
                 break;
             }
-            lines.push(`for (let ${key}Index = 0; ${key}Index < ${key}Length; ${key}Index++) {`);
+            lines.push(`for (let ${key}Index = 0; ${key}Index < ${isNaN((item as any).indexer) ? `${key}Length` : (item as any).indexer}; ${key}Index++) {`);
             lines.push(...(ProtocolSpecRegularDataTypes.includes(item.data as any) ? genReadCode({ [`[${key}Index]`]: item.data as any }, [...(typeof keys === 'string' ? [keys] : keys), key]) : genReadCode(item.data as any, [...(typeof keys === 'string' ? [keys] : keys), key, `[${key}Index]`])).map(i => `  ${i}`));
             lines.push('}');
 

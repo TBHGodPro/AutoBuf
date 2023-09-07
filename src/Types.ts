@@ -74,7 +74,7 @@ export function isValidProtocolSpecData(data: ProtocolSpecData): data is Protoco
             if (!isValidProtocolSpecData((item as any).data)) return false;
           }
           if (item.type === 'array' && (item as any).indexer) {
-            if (!['varInt', 'int', 'short', 'long'].includes((item as any).indexer) && typeof (item as any).indexer !== 'number') return false;
+            if (!['varInt', 'int', 'short', 'long'].includes((item as any).indexer) && isNaN((item as any).indexer)) return false;
           }
         } else if ((item as any).keyType && (item as any).valueType) {
           if (!ProtocolSpecRegularDataTypes.includes((item as any).keyType)) return false;
